@@ -1,0 +1,54 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Ficheiros temporários
+tmp/
+temp/
+.cache/
+
+# Dados/exportações grandes
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.zip
+*.rar
+*.7z
+
+# Bases de dados locais
+*.db
+*.sqlite
+*.sqlite3
+
+# Modelos / ficheiros pesados
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Imagens ou outputs gerados
+outputs/
+exports/
+reports/
