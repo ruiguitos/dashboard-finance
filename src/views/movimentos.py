@@ -52,7 +52,7 @@ def render_movimentos(conn: sqlite3.Connection, movimentos: pd.DataFrame, listas
 
     edited = st.data_editor(
         edit_df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         num_rows="dynamic",
         column_config={

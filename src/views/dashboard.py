@@ -27,8 +27,8 @@ def render_plotly_or_empty(fig, *, key: str, empty_message: str) -> None:
 
     st.plotly_chart(
         fig,
-        use_container_width=True,
-        theme=None,
+        width="stretch",
+        theme="streamlit",
         key=key,
         config={"displayModeBar": False, "responsive": True},
     )
@@ -41,7 +41,6 @@ def render_dashboard(
     metrics: dict,
     ano: int,
     mes_nome: str,
-    dark_mode: bool = False,
 ) -> None:
     st.subheader(f"{mes_nome} de {ano}")
 
@@ -76,16 +75,16 @@ def render_dashboard(
     with left:
         st.markdown('<div class="section-title">Evolução mensal</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            evolution_chart(resumo, dark_mode=dark_mode),
-            key=f"chart_evolucao_{ano}_{int(dark_mode)}",
+            evolution_chart(resumo),
+            key=f"chart_evolucao_{ano}",
             empty_message="Ainda não há dados suficientes para mostrar a evolução mensal.",
         )
 
     with right:
         st.markdown('<div class="section-title">Saldos atuais</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            saldos_chart(saldos, dark_mode=dark_mode),
-            key=f"chart_saldos_{ano}_{int(dark_mode)}",
+            saldos_chart(saldos),
+            key=f"chart_saldos_{ano}",
             empty_message="Ainda não há saldos definidos.",
         )
 
@@ -93,16 +92,16 @@ def render_dashboard(
     with left2:
         st.markdown('<div class="section-title">Despesas por categoria</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            expenses_by_category_chart(movimentos_mes, dark_mode=dark_mode),
-            key=f"chart_despesas_categoria_{ano}_{mes_nome}_{int(dark_mode)}",
+            expenses_by_category_chart(movimentos_mes),
+            key=f"chart_despesas_categoria_{ano}_{mes_nome}",
             empty_message="Sem despesas no mês selecionado.",
         )
 
     with right2:
         st.markdown('<div class="section-title">Saídas por conta/plataforma</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            expenses_by_account_chart(movimentos_mes, dark_mode=dark_mode),
-            key=f"chart_saidas_conta_{ano}_{mes_nome}_{int(dark_mode)}",
+            expenses_by_account_chart(movimentos_mes),
+            key=f"chart_saidas_conta_{ano}_{mes_nome}",
             empty_message="Sem saídas no mês selecionado.",
         )
 
@@ -121,6 +120,6 @@ def render_dashboard(
 
     st.dataframe(
         top[["Data", "Tipo", "Conta/Plataforma", "Categoria", "Subcategoria", "Método", "Valor", "Validado?"]],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )

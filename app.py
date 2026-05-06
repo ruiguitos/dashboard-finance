@@ -30,10 +30,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
-
-theme = apply_styles(bool(st.session_state.dark_mode))
+apply_styles()
 
 conn = get_conn()
 create_schema(conn)
@@ -70,8 +67,6 @@ st.markdown(
 
 with st.sidebar:
     st.markdown("### Menus")
-
-    dark_mode = st.toggle("🌙 Modo escuro", key="dark_mode")
 
     st.divider()
 
@@ -129,7 +124,6 @@ with tab_dashboard:
         metrics=metrics,
         ano=ano,
         mes_nome=mes_nome,
-        dark_mode=bool(dark_mode),
     )
 
 with tab_movimentos:
