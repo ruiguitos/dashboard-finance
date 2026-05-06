@@ -16,26 +16,60 @@ def apply_styles() -> None:
         :root,
         .stApp {
             color-scheme: light dark;
-            --app-bg: var(--background-color);
-            --app-surface: var(--secondary-background-color);
-            --app-surface-2: var(--secondary-background-color);
-            --app-surface-2: color-mix(in srgb, var(--secondary-background-color), var(--background-color) 34%);
-            --app-border: var(--border-color, rgba(148, 163, 184, .32));
-            --app-text: var(--text-color);
-            --app-muted: var(--text-color);
-            --app-muted: color-mix(in srgb, var(--text-color), var(--background-color) 30%);
-            --app-muted-2: var(--text-color);
-            --app-muted-2: color-mix(in srgb, var(--text-color), var(--background-color) 50%);
-            --app-accent: var(--primary-color);
-            --app-danger: var(--red-text-color, #ef4444);
-            --app-warning: var(--orange-text-color, #d97706);
-            --app-success: var(--green-text-color, #16a34a);
+            --app-bg: var(--background-color, light-dark(#f6f8fb, #0b1120));
+            --app-surface: var(--secondary-background-color, light-dark(#ffffff, #111827));
+            --app-surface-2: var(--secondary-background-color, light-dark(#f8fafc, #172033));
+            --app-surface-2: color-mix(
+                in srgb,
+                var(--secondary-background-color, light-dark(#f8fafc, #172033)),
+                var(--background-color, light-dark(#f6f8fb, #0b1120)) 34%
+            );
+            --app-border: var(--border-color, light-dark(#dbe3ee, #334155));
+            --app-text: var(--text-color, light-dark(#0f172a, #f8fafc));
+            --app-muted: var(--text-color, light-dark(#334155, #cbd5e1));
+            --app-muted: color-mix(
+                in srgb,
+                var(--text-color, light-dark(#334155, #cbd5e1)),
+                var(--background-color, light-dark(#f6f8fb, #0b1120)) 30%
+            );
+            --app-muted-2: var(--text-color, light-dark(#64748b, #94a3b8));
+            --app-muted-2: color-mix(
+                in srgb,
+                var(--text-color, light-dark(#64748b, #94a3b8)),
+                var(--background-color, light-dark(#f6f8fb, #0b1120)) 50%
+            );
+            --app-accent: var(--primary-color, light-dark(#0f766e, #2dd4bf));
+            --app-danger: var(--red-text-color, light-dark(#dc2626, #fb7185));
+            --app-warning: var(--orange-text-color, light-dark(#d97706, #fbbf24));
+            --app-success: var(--green-text-color, light-dark(#16a34a, #22c55e));
             --app-shadow: 0 10px 26px rgba(15, 23, 42, .08);
         }
 
-        html, body, .stApp, [data-testid="stAppViewContainer"] {
+        html,
+        body,
+        .stApp,
+        [data-testid="stAppViewContainer"] {
             background: var(--app-bg);
             color: var(--app-text);
+        }
+
+        .stApp,
+        .stApp p,
+        .stApp label,
+        .stApp span,
+        .stApp [data-testid="stMarkdownContainer"],
+        .stApp [data-testid="stMarkdownContainer"] *,
+        .stApp [data-testid="stCaptionContainer"],
+        .stApp [data-testid="stCaptionContainer"] *,
+        .stApp [data-testid="stWidgetLabel"],
+        .stApp [data-testid="stWidgetLabel"] *,
+        .stApp [data-baseweb],
+        .stApp [data-baseweb] *,
+        .stApp [role="tab"],
+        .stApp [role="tab"] *,
+        .stApp [role="option"],
+        .stApp [role="option"] * {
+            color: var(--app-text) !important;
         }
 
         [data-testid="stHeader"] {
@@ -43,8 +77,9 @@ def apply_styles() -> None:
         }
 
         [data-testid="stToolbar"],
+        [data-testid="stToolbar"] *,
         [data-testid="stDecoration"] {
-            color: var(--app-text);
+            color: var(--app-text) !important;
         }
 
         .block-container {
@@ -66,7 +101,7 @@ def apply_styles() -> None:
         [data-testid="stSidebar"] p,
         [data-testid="stSidebar"] span,
         [data-testid="stSidebar"] div {
-            color: var(--app-text);
+            color: var(--app-text) !important;
         }
 
         [data-testid="stSidebar"] code {
@@ -86,7 +121,7 @@ def apply_styles() -> None:
         label,
         p,
         span {
-            color: inherit;
+            color: var(--app-text) !important;
         }
 
         div[data-baseweb="select"] > div,
@@ -97,7 +132,16 @@ def apply_styles() -> None:
         [data-testid="stDateInput"] input {
             background: var(--app-surface-2);
             border-color: var(--app-border);
-            color: var(--app-text);
+            color: var(--app-text) !important;
+        }
+
+        input,
+        textarea,
+        select,
+        div[data-baseweb="select"] *,
+        div[data-baseweb="input"] *,
+        div[data-baseweb="textarea"] * {
+            color: var(--app-text) !important;
         }
 
         div[data-baseweb="popover"],
@@ -142,25 +186,25 @@ def apply_styles() -> None:
             font-size: clamp(1.85rem, 2.1vw, 2.35rem);
             line-height: 1.1;
             font-weight: 900;
-            color: var(--app-text);
+            color: var(--app-text) !important;
             letter-spacing: -0.035em;
         }
 
         .app-subtitle {
-            color: var(--app-muted);
+            color: var(--app-muted) !important;
             margin-top: .55rem;
             font-size: 1rem;
         }
 
         h1, h2, h3, h4, h5, h6 {
-            color: var(--app-text);
+            color: var(--app-text) !important;
             letter-spacing: -0.015em;
         }
 
         .section-title {
             font-size: 1.12rem;
             font-weight: 850;
-            color: var(--app-accent);
+            color: var(--app-accent) !important;
             margin: .75rem 0 .55rem 0;
         }
 
@@ -178,7 +222,7 @@ def apply_styles() -> None:
         }
 
         .metric-label {
-            color: var(--app-muted);
+            color: var(--app-muted) !important;
             font-size: .86rem;
             font-weight: 750;
             line-height: 1.2;
@@ -188,7 +232,7 @@ def apply_styles() -> None:
         }
 
         .metric-value {
-            color: var(--app-text);
+            color: var(--app-text) !important;
             font-size: clamp(1.22rem, 1.6vw, 1.75rem);
             font-weight: 900;
             line-height: 1.1;
@@ -197,11 +241,11 @@ def apply_styles() -> None:
             text-overflow: ellipsis;
         }
 
-        .metric-value.negative { color: var(--app-danger); }
-        .metric-value.positive { color: var(--app-success); }
+        .metric-value.negative { color: var(--app-danger) !important; }
+        .metric-value.positive { color: var(--app-success) !important; }
 
         .small-note {
-            color: var(--app-muted-2);
+            color: var(--app-muted-2) !important;
             font-size: .9rem;
         }
 
@@ -211,12 +255,12 @@ def apply_styles() -> None:
         }
 
         .stTabs [data-baseweb="tab"] {
-            color: var(--app-muted);
+            color: var(--app-muted) !important;
             font-weight: 750;
         }
 
         .stTabs [aria-selected="true"] {
-            color: var(--app-accent);
+            color: var(--app-accent) !important;
             border-bottom-color: var(--app-accent);
         }
 
@@ -236,12 +280,12 @@ def apply_styles() -> None:
         }
 
         button {
-            color: var(--app-text);
+            color: var(--app-text) !important;
         }
 
         button[kind="primary"],
         button[kind="primary"] * {
-            color: #ffffff;
+            color: #ffffff !important;
         }
         </style>
         """,
