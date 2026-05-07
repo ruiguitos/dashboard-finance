@@ -7,9 +7,10 @@ import pandas as pd
 
 def export_excel_bytes(movimentos: pd.DataFrame, config: pd.DataFrame, saldos: pd.DataFrame, resumo: pd.DataFrame) -> bytes:
     output = io.BytesIO()
-    mov = movimentos.copy().drop(columns=["id"], errors="ignore")
+    mov = movimentos.copy().drop(columns=["id", "Validado?"], errors="ignore")
     if not mov.empty:
         mov["Data"] = pd.to_datetime(mov["Data"], errors="coerce").dt.date
+        mov = mov.rename(columns={"Subcategoria": "Descrição/Detalhe"})
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         resumo.to_excel(writer, sheet_name="Dashboard_Resumo", index=False)

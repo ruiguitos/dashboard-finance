@@ -1,48 +1,10 @@
-# Controlo Financeiro Pessoal
+# Dashboard Financeiro Pessoal
 
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.56+-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)](https://plotly.com/python/)
+Aplicação local em Streamlit que replica o Excel de controlo financeiro, sem a folha da Trade Republic.
 
-Dashboard financeiro pessoal em Streamlit para acompanhar movimentos, saldos, despesas, investimentos e resumo mensal. A aplicação substitui uma folha de controlo em Excel por uma app local com base de dados SQLite, mantendo exportação para Excel/CSV como backup.
+## Como correr
 
-## Funcionalidades
-
-- Dashboard mensal com métricas de entradas, despesas, investimentos, saldo do mês e saldo total.
-- Gráficos interativos para evolução mensal, saldos atuais, despesas por categoria e saídas por conta/plataforma.
-- Gestão de movimentos com formulário de criação e tabela editável.
-- Configuração de salário/recibo e saldos atuais.
-- Resumo mensal calculado automaticamente.
-- Exportação para Excel e CSV.
-- Tema claro/escuro nativo do Streamlit, incluindo tabelas, formulários e gráficos.
-
-## Stack
-
-- Python
-- Streamlit
-- Pandas
-- Plotly
-- SQLite
-- OpenPyXL
-
-## Como Correr Localmente
-
-Clona ou abre a pasta do projeto e executa:
-
-```bash
-cd ~/code/Dashboard_Financeiro
-chmod +x run_dashboard.sh
-./run_dashboard.sh
-```
-
-O script cria a `.venv`, instala dependências e inicia o Streamlit. Depois abre:
-
-```text
-http://localhost:8501
-```
-
-Também podes correr manualmente:
+Dentro desta pasta:
 
 ```bash
 python3 -m venv .venv
@@ -51,65 +13,57 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Estrutura do Projeto
+Ou, em Ubuntu/WSL:
 
-```text
-.
-├── app.py
-├── requirements.txt
-├── run_dashboard.sh
-├── data/
-│   ├── financeiro.db
-│   └── seed_data.json
-├── src/
-│   ├── calculations.py
-│   ├── charts.py
-│   ├── constants.py
-│   ├── database.py
-│   ├── export.py
-│   ├── styles.py
-│   ├── utils.py
-│   └── views/
-│       ├── config.py
-│       ├── dashboard.py
-│       ├── exportar.py
-│       ├── movimentos.py
-│       └── resumo.py
-└── .streamlit/
-    └── config.toml
+```bash
+./run_dashboard.sh
 ```
 
-## Dados e Backups
+Depois abre no browser:
 
-A base de dados local fica em:
+```text
+http://localhost:8501
+```
+
+## Valores corrigidos na Config
+
+Os valores-base ficam guardados como texto em formato português, sem símbolo €:
+
+```text
+Líquido banco mensal              1025,56
+Coverflex Alimentação mensal      128
+Coverflex Benefícios mensal       115
+Total líquido mensal disponível   1268,56
+```
+
+No Dashboard aparecem formatados como euros:
+
+```text
+1.025,56 €
+128,00 €
+115,00 €
+1.268,56 €
+```
+
+## Alterações desta versão
+
+- Removido o campo **Validado?** da interface. Todos os movimentos passam a ser considerados no dashboard.
+- O antigo campo **Subcategoria** foi apresentado como **Descrição/Detalhe**, porque é apenas uma descrição curta para identificar melhor o movimento.
+- Adicionado o campo **Modelo de movimento** ao criar movimentos, para pré-preencher casos comuns como salário, Coverflex, gaming, MB Way e transferência para Trade Republic.
+- A exportação para Excel deixa de mostrar **Validado?** e passa a mostrar **Descrição/Detalhe**.
+
+## Base de dados
+
+A base de dados local está em:
 
 ```text
 data/financeiro.db
 ```
 
-Não apagues a pasta `data/` se já tiveres movimentos reais. O ficheiro `data/seed_data.json` serve para criar dados iniciais quando a base ainda não existe ou quando usas a opção de reposição.
+Este zip já inclui uma base de dados inicial. Se quiseres manter dados de uma versão antiga, copia o teu `data/financeiro.db` antigo para esta pasta.
 
-As exportações em Excel e CSV são pensadas como cópia de segurança. A app não precisa de importar Excel para funcionar no dia a dia.
+## Nota sobre Light/Dark mode
 
-## Tema Claro/Escuro
+A aplicação usa um botão próprio **🌙 Modo escuro** na sidebar. O tema dos gráficos é aplicado diretamente no Plotly e as tabelas de leitura são HTML com cores inline, para evitar o problema de tabelas brancas em dark mode.
 
-O tema é controlado pelo sistema nativo do Streamlit, configurado em `.streamlit/config.toml`. Para alternar entre claro e escuro, usa o menu de tema do Streamlit no canto superior direito ou a preferência do browser.
-
-## Deploy
-
-Para deploy em Streamlit Community Cloud ou ambiente semelhante:
-
-- Entry point: `app.py`
-- Dependências: `requirements.txt`
-- Configuração visual: `.streamlit/config.toml`
-- Dados persistentes: garante persistência para `data/financeiro.db` se quiseres manter movimentos entre reinícios do serviço.
-
-## Desenvolvimento
-
-Para validar sintaxe dos módulos:
-
-```bash
-python -m compileall app.py src
-```
-
-Antes de alterações estruturais, faz backup de `data/financeiro.db` se a base já tiver dados importantes.
+Evita voltar a usar `st.dataframe` ou `st.data_editor` para tabelas de consulta se quiseres manter o dark mode consistente. Para mostrar dados, usa `html_table()` em `src/ui.py`.

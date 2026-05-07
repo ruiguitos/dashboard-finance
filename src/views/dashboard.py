@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from src.charts import evolution_chart, expenses_by_account_chart, expenses_by_category_chart, saldos_chart
+from src.ui import html_table, info_box
 from src.utils import money, normalize
 
 
@@ -27,8 +28,8 @@ def render_plotly_or_empty(fig, *, key: str, empty_message: str) -> None:
 
     st.plotly_chart(
         fig,
-        width="stretch",
-        theme="streamlit",
+        use_container_width=True,
+        theme=None,
         key=key,
         config={"displayModeBar": False, "responsive": True},
     )
@@ -41,10 +42,11 @@ def render_dashboard(
     metrics: dict,
     ano: int,
     mes_nome: str,
+    dark_mode: bool = False,
 ) -> None:
     st.subheader(f"{mes_nome} de {ano}")
 
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
     with c1:
         metric_card("Entradas", money(metrics["entradas"]), "positive" if metrics["entradas"] > 0 else "")
     with c2:
@@ -54,9 +56,26 @@ def render_dashboard(
     with c4:
         metric_card("Saldo do mês", money(metrics["saldo_mes"]), "negative" if metrics["saldo_mes"] < 0 else "positive")
     with c5:
-        metric_card("Saldo total atual", money(metrics["saldo_total"]))
+        metric_card("Disponível atual", money(metrics["saldo_disponivel"]))
     with c6:
+        metric_card("Património registado", money(metrics["saldo_total"]))
+    with c7:
         metric_card("Movimentos", f'{metrics["movimentos"]}')
+
+    with st.expander("Como estes valores são calculados", expanded=False):
+        info_box(
+            "Resumo do mês",
+            "Entradas, despesas, investimento e saldo do mês usam apenas os movimentos registados no mês/ano selecionado. O salário-base na Config não entra como receita mensal enquanto não existir um movimento de salário nesse mês.",
+        )
+        st.write(
+            f"**Saldo do mês:** {money(metrics['entradas'])} - {money(metrics['despesas'])} - {money(metrics['investimentos'])} = **{money(metrics['saldo_mes'])}**"
+        )
+        st.write(
+            f"**Disponível atual:** Banco + Coverflex = {money(metrics['saldo_banco'])} + {money(metrics['saldo_coverflex'])} = **{money(metrics['saldo_disponivel'])}**"
+        )
+        st.write(
+            f"**Património registado:** todos os saldos da Config, incluindo Trade Republic = **{money(metrics['saldo_total'])}**."
+        )
 
     st.markdown('<div class="section-title">Resumo financeiro base</div>', unsafe_allow_html=True)
     r1, r2, r3, r4 = st.columns(4)
@@ -75,16 +94,16 @@ def render_dashboard(
     with left:
         st.markdown('<div class="section-title">Evolução mensal</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            evolution_chart(resumo),
-            key=f"chart_evolucao_{ano}",
+            evolution_chart(resumo, dark_mode=dark_mode),
+            key=f"chart_evolucao_{ano}_{int(dark_mode)}",
             empty_message="Ainda não há dados suficientes para mostrar a evolução mensal.",
         )
 
     with right:
         st.markdown('<div class="section-title">Saldos atuais</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            saldos_chart(saldos),
-            key=f"chart_saldos_{ano}",
+            saldos_chart(saldos, dark_mode=dark_mode),
+            key=f"chart_saldos_{ano}_{int(dark_mode)}",
             empty_message="Ainda não há saldos definidos.",
         )
 
@@ -92,20 +111,20 @@ def render_dashboard(
     with left2:
         st.markdown('<div class="section-title">Despesas por categoria</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            expenses_by_category_chart(movimentos_mes),
-            key=f"chart_despesas_categoria_{ano}_{mes_nome}",
+            expenses_by_category_chart(movimentos_mes, dark_mode=dark_mode),
+            key=f"chart_despesas_categoria_{ano}_{mes_nome}_{int(dark_mode)}",
             empty_message="Sem despesas no mês selecionado.",
         )
 
     with right2:
         st.markdown('<div class="section-title">Saídas por conta/plataforma</div>', unsafe_allow_html=True)
         render_plotly_or_empty(
-            expenses_by_account_chart(movimentos_mes),
-            key=f"chart_saidas_conta_{ano}_{mes_nome}",
+            expenses_by_account_chart(movimentos_mes, dark_mode=dark_mode),
+            key=f"chart_saidas_conta_{ano}_{mes_nome}_{int(dark_mode)}",
             empty_message="Sem saídas no mês selecionado.",
         )
 
-    st.markdown('<div class="section-title">Top despesas do mês</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Top despesas/saídas do mês</div>', unsafe_allow_html=True)
     if movimentos_mes.empty:
         st.info("Sem movimentos no mês selecionado.")
         return
@@ -117,9 +136,9 @@ def render_dashboard(
 
     top["Data"] = pd.to_datetime(top["Data"], errors="coerce").dt.strftime("%d/%m/%Y")
     top["Valor"] = top["Valor"].map(money)
-
-    st.dataframe(
-        top[["Data", "Tipo", "Conta/Plataforma", "Categoria", "Subcategoria", "Método", "Valor", "Validado?"]],
-        width="stretch",
-        hide_index=True,
+    top = top.rename(columns={"Subcategoria": "Descrição/Detalhe"})
+    html_table(
+        top,
+        columns=["Data", "Tipo", "Conta/Plataforma", "Categoria", "Descrição/Detalhe", "Método", "Valor"],
+        max_rows=10,
     )

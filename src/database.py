@@ -7,6 +7,7 @@ from typing import Any
 import pandas as pd
 
 from src.constants import DATA_DIR, DB_PATH, DEFAULT_LISTS, MONTHS_PT, SEED_PATH
+from src.utils import parse_float
 
 
 MOVIMENTO_COLUMNS = [
@@ -103,8 +104,8 @@ def seed_database(conn: sqlite3.Connection, force: bool = False) -> None:
                 mov.get("Categoria", ""),
                 mov.get("Subcategoria", ""),
                 mov.get("Método", ""),
-                float(mov.get("Valor") or 0),
-                mov.get("Validado?", "Não"),
+                parse_float(mov.get("Valor")),
+                mov.get("Validado?", "Sim"),
             ),
         )
 
@@ -117,7 +118,7 @@ def seed_database(conn: sqlite3.Connection, force: bool = False) -> None:
     for saldo in seed.get("saldos", []):
         conn.execute(
             "INSERT INTO saldos (conta, saldo, fonte) VALUES (?, ?, ?)",
-            (saldo.get("Conta", ""), float(saldo.get("Saldo") or 0), saldo.get("Fonte", "")),
+            (saldo.get("Conta", ""), parse_float(saldo.get("Saldo")), saldo.get("Fonte", "")),
         )
 
     conn.execute("INSERT INTO meta (key, value) VALUES ('initialized', '1')")
@@ -130,6 +131,60 @@ def get_lists() -> dict[str, list]:
     listas.update(seed.get("listas", {}))
     return listas
 
+
+
+def insert_movimento(
+    conn: sqlite3.Connection,
+    *,
+    data: str,
+    tipo: str,
+    impacto: str,
+    conta_plataforma: str,
+    categoria: str,
+    subcategoria: str,
+    metodo: str,
+    valor: float,
+    validado: str,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO movimentos
+        (data, tipo, impacto, conta_plataforma, categoria, subcategoria, metodo, valor, validado)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (data, tipo, impacto, conta_plataforma, categoria, subcategoria, metodo, parse_float(valor), validado),
+    )
+    conn.commit()
+
+
+def update_movimento(
+    conn: sqlite3.Connection,
+    movimento_id: int,
+    *,
+    data: str,
+    tipo: str,
+    impacto: str,
+    conta_plataforma: str,
+    categoria: str,
+    subcategoria: str,
+    metodo: str,
+    valor: float,
+    validado: str,
+) -> None:
+    conn.execute(
+        """
+        UPDATE movimentos
+           SET data=?, tipo=?, impacto=?, conta_plataforma=?, categoria=?, subcategoria=?, metodo=?, valor=?, validado=?
+         WHERE id=?
+        """,
+        (data, tipo, impacto, conta_plataforma, categoria, subcategoria, metodo, parse_float(valor), validado, int(movimento_id)),
+    )
+    conn.commit()
+
+
+def delete_movimento(conn: sqlite3.Connection, movimento_id: int) -> None:
+    conn.execute("DELETE FROM movimentos WHERE id=?", (int(movimento_id),))
+    conn.commit()
 
 def read_movimentos(conn: sqlite3.Connection) -> pd.DataFrame:
     df = pd.read_sql_query("SELECT * FROM movimentos ORDER BY data DESC, id DESC", conn)
@@ -187,10 +242,10 @@ def save_movimentos(conn: sqlite3.Connection, df: pd.DataFrame) -> None:
                 str(row.get("Impacto", "")),
                 str(row.get("Conta/Plataforma", "")),
                 str(row.get("Categoria", "")),
-                str(row.get("Subcategoria", "")),
+                str(row.get("Subcategoria", row.get("Descrição/Detalhe", ""))),
                 str(row.get("Método", "")),
-                float(row.get("Valor") or 0),
-                str(row.get("Validado?", "Não")),
+                parse_float(row.get("Valor")),
+                str(row.get("Validado?", "Sim")),
             ),
         )
     conn.commit()
@@ -211,6 +266,6 @@ def save_saldos(conn: sqlite3.Connection, df: pd.DataFrame) -> None:
     for _, row in df.iterrows():
         conn.execute(
             "INSERT INTO saldos (conta, saldo, fonte) VALUES (?, ?, ?)",
-            (str(row.get("Conta", "")), float(row.get("Saldo") or 0), str(row.get("Fonte", ""))),
+            (str(row.get("Conta", "")), parse_float(row.get("Saldo")), str(row.get("Fonte", ""))),
         )
     conn.commit()

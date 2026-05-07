@@ -3,7 +3,14 @@ from __future__ import annotations
 import pandas as pd
 
 from src.constants import MONTHS_PT
-from src.utils import get_config_value, normalize
+from src.utils import get_config_value, normalize, parse_float
+
+
+def _saldo_por_conta(saldos: pd.DataFrame, contains: str) -> float:
+    if saldos is None or saldos.empty:
+        return 0.0
+    mask = saldos["Conta"].map(normalize).str.contains(normalize(contains), na=False)
+    return float(pd.to_numeric(saldos.loc[mask, "Saldo"], errors="coerce").fillna(0).sum())
 
 
 def monthly_metrics(mes_df: pd.DataFrame, config: pd.DataFrame, saldos: pd.DataFrame) -> dict[str, float]:
@@ -24,13 +31,29 @@ def monthly_metrics(mes_df: pd.DataFrame, config: pd.DataFrame, saldos: pd.DataF
     coverflex_alimentacao = get_config_value(config, "Coverflex Alimentação mensal", 0.0)
     coverflex_beneficios = get_config_value(config, "Coverflex Benefícios mensal", 0.0)
 
+    if saldos is not None and not saldos.empty:
+        saldos_num = saldos.copy()
+        saldos_num["Saldo"] = saldos_num["Saldo"].map(parse_float)
+        saldo_total = float(saldos_num["Saldo"].sum())
+    else:
+        saldo_total = 0.0
+
+    saldo_banco = _saldo_por_conta(saldos, "Banco")
+    saldo_coverflex = _saldo_por_conta(saldos, "Coverflex")
+    saldo_trade = _saldo_por_conta(saldos, "Trade Republic")
+    saldo_disponivel = saldo_banco + saldo_coverflex
+
     return {
         "entradas": float(entradas),
         "despesas": float(despesas),
         "investimentos": float(investimentos),
         "transferencias": float(transferencias),
         "saldo_mes": float(saldo_mes),
-        "saldo_total": float(saldos["Saldo"].sum()) if not saldos.empty else 0.0,
+        "saldo_total": saldo_total,
+        "saldo_disponivel": saldo_disponivel,
+        "saldo_banco": saldo_banco,
+        "saldo_coverflex": saldo_coverflex,
+        "saldo_trade": saldo_trade,
         "movimentos": int(len(mes_df)),
         "salario_banco": salario_banco,
         "coverflex_alimentacao": coverflex_alimentacao,

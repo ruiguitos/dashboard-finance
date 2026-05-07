@@ -30,7 +30,13 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-apply_styles()
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Read the current toggle state first, then apply CSS once per rerun.
+# This avoids a mixed render where the sidebar has one theme and the page/charts another.
+dark_mode = bool(st.session_state.dark_mode)
+theme = apply_styles(dark_mode)
 
 conn = get_conn()
 create_schema(conn)
@@ -66,6 +72,10 @@ st.markdown(
 )
 
 with st.sidebar:
+    st.markdown("### Aparência")
+    dark_mode = st.toggle("🌙 Modo escuro", key="dark_mode")
+
+    st.divider()
     st.markdown("### Menus")
 
     st.divider()
@@ -85,10 +95,6 @@ with st.sidebar:
     mes_num = MONTHS_INV[mes_nome]
 
     st.divider()
-
-    apenas_validados = st.checkbox("Mostrar apenas movimentos validados", value=False)
-
-    st.divider()
     st.markdown("### Base de dados local")
     st.caption("Os dados ficam guardados neste ficheiro:")
     st.code(str(DB_PATH), language="text")
@@ -100,10 +106,7 @@ with st.sidebar:
             st.success("Dados repostos.")
             st.rerun()
 
-if apenas_validados:
-    movimentos_visiveis = movimentos[movimentos["Validado?"].map(lambda x: str(x).strip().lower()).eq("sim")].copy()
-else:
-    movimentos_visiveis = movimentos.copy()
+movimentos_visiveis = movimentos.copy()
 
 mes_df = movimentos_visiveis[
     (movimentos_visiveis["Ano Ref."] == ano) & (movimentos_visiveis["Mês nº"] == mes_num)
@@ -124,13 +127,14 @@ with tab_dashboard:
         metrics=metrics,
         ano=ano,
         mes_nome=mes_nome,
+        dark_mode=bool(dark_mode),
     )
 
 with tab_movimentos:
-    render_movimentos(conn=conn, movimentos=movimentos, listas=listas)
+    render_movimentos(conn=conn, movimentos=movimentos, lists=listas, ano=ano, mes_num=mes_num)
 
 with tab_config:
-    render_config(conn=conn, config=config, saldos=saldos)
+    render_config(conn=conn, config=config, saldos=saldos, ano=ano, mes_nome=mes_nome)
 
 with tab_resumo:
     render_resumo(resumo=resumo, ano=ano)
